@@ -151,7 +151,10 @@ void Tree::predict(const Data* prediction_data, bool oob_prediction) {
 
       // Move to child
       size_t split_varID = split_varIDs[nodeID];
-      double value = prediction_data->get(sample_idx, split_varID);
+      double value;
+      if (!prediction_data->get(sample_idx, split_varID, value)) {
+        break; // TODO: break if not existant feature?
+      }
       if ((*is_ordered_variable)[split_varID]) {
         if (value <= split_values[nodeID]) {
           // Move to left child
@@ -273,7 +276,11 @@ bool Tree::splitNode(size_t nodeID) {
   if ((*is_ordered_variable)[split_varID]) {
     // Ordered: left is <= splitval and right is > splitval
     for (auto& sampleID : sampleIDs[nodeID]) {
-      if (data->get(sampleID, split_varID) <= split_value) {
+      double value;
+      if (!data->get(sampleID, split_varID, value)) {
+        continue; // TODO: is skipping correct here?
+      }
+      if (value <= split_value) {
         sampleIDs[left_child_nodeID].push_back(sampleID);
       } else {
         sampleIDs[right_child_nodeID].push_back(sampleID);
@@ -282,7 +289,10 @@ bool Tree::splitNode(size_t nodeID) {
   } else {
     // Unordered: If bit at position is 1 -> right, 0 -> left
     for (auto& sampleID : sampleIDs[nodeID]) {
-      double level = data->get(sampleID, split_varID);
+      double level;
+      if (!data->get(sampleID, split_varID, level)) {
+        continue;
+      }
       size_t factorID = floor(level) - 1;
       size_t splitID = floor(split_value);
 
@@ -322,7 +332,11 @@ size_t Tree::dropDownSamplePermuted(size_t permuted_varID, size_t sampleID, size
     }
 
     // Move to child
-    double value = data->get(sampleID_final, split_varID);
+    double value;
+    if (!data->get(sampleID_final, split_varID, value)) {
+      break; // TODO: what to do here?
+    }
+
     if ((*is_ordered_variable)[split_varID]) {
       if (value <= split_values[nodeID]) {
         // Move to left child

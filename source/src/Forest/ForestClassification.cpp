@@ -83,7 +83,10 @@ void ForestClassification::initInternal(std::string status_variable_name) {
   // Create class_values and response_classIDs
   if (!prediction_mode) {
     for (size_t i = 0; i < num_samples; ++i) {
-      double value = data->get(i, dependent_varID);
+      double value;
+      if (!data->get(i, dependent_varID, value)) {
+        continue;
+      }
 
       // If classID is already in class_values, use ID. Else create a new one.
       uint classID = find(class_values.begin(), class_values.end(), value) - class_values.begin();
@@ -176,7 +179,10 @@ void ForestClassification::computePredictionErrorInternal() {
   for (size_t i = 0; i < predictions.size(); ++i) {
     double predicted_value = predictions[i][0];
     if (!std::isnan(predicted_value)) {
-      double real_value = data->get(i, dependent_varID);
+      double real_value;
+      if (!data->get(i, dependent_varID, real_value)) {
+        continue;
+      }
       if (predicted_value != real_value) {
         ++num_missclassifications;
       }

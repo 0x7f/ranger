@@ -39,7 +39,7 @@ public:
   Data();
   virtual ~Data();
 
-  virtual double get(size_t row, size_t col) const = 0;
+  virtual bool get(size_t row, size_t col, double& result) const = 0;
 
   size_t getVariableID(std::string variable_name);
 
@@ -54,19 +54,19 @@ public:
 
   void getAllValues(std::vector<double>& all_values, std::vector<size_t>& sampleIDs, size_t varID);
 
-  size_t getIndex(size_t row, size_t col) const {
+  bool getIndex(size_t row, size_t col, size_t& result) const {
     if (col < num_cols_no_sparse) {
-      return index_data[col * num_rows + row];
+      result = index_data[col * num_rows + row];
+      return true;
     } else {
       // Get data out of sparse storage. -1 because of GenABEL coding.
       size_t idx = (col - num_cols_no_sparse) * num_rows_rounded + row;
-      size_t result = (((sparse_data[idx / 4] & mask[idx % 4]) >> offset[idx % 4]) - 1);
+      result = (((sparse_data[idx / 4] & mask[idx % 4]) >> offset[idx % 4]) - 1);
 
-      // TODO: Better way to treat missing values?
       if (result > 2) {
-        return 0;
+        return false;
       } else {
-        return result;
+        return true;
       }
     }
   }

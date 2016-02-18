@@ -166,7 +166,10 @@ void TreeSurvival::computeDeathCounts(size_t nodeID) {
   }
 
   for (auto& sampleID : sampleIDs[nodeID]) {
-    double survival_time = data->get(sampleID, dependent_varID);
+    double survival_time;
+    if (!data->get(sampleID, dependent_varID, survival_time)) {
+      continue;
+    }
 
     size_t t = 0;
     while (t < num_timepoints && (*unique_timepoints)[t] < survival_time) {
@@ -177,7 +180,11 @@ void TreeSurvival::computeDeathCounts(size_t nodeID) {
     // Now t is the survival time, add to at risk and to death if death
     if (t < num_timepoints) {
       ++num_samples_at_risk[t];
-      if (data->get(sampleID, status_varID) == 1) {
+      double value;
+      if (!data->get(sampleID, status_varID, value)) {
+        continue;
+      }
+      if (value == 1) {
         ++num_deaths[t];
       }
     }
@@ -190,7 +197,10 @@ void TreeSurvival::computeChildDeathCounts(size_t nodeID, size_t varID, std::vec
 
   // Count deaths in right child per timepoint and possbile split
   for (auto& sampleID : sampleIDs[nodeID]) {
-    double value = data->get(sampleID, varID);
+    double value;
+    if (!data->get(sampleID, varID, value)) {
+      continue;
+    }
     size_t survival_timeID = (*response_timepointIDs)[sampleID];
 
     // Count deaths until split_value reached
@@ -199,7 +209,11 @@ void TreeSurvival::computeChildDeathCounts(size_t nodeID, size_t varID, std::vec
       if (value > possible_split_values[i]) {
         ++num_samples_right_child[i];
         ++delta_samples_at_risk_right_child[i * num_timepoints + survival_timeID];
-        if (data->get(sampleID, status_varID) == 1) {
+        double survival_time;
+        if (!data->get(sampleID, status_varID, survival_time)) {
+          continue;
+        }
+        if (survival_time == 1) {
           ++num_deaths_right_child[i * num_timepoints + survival_timeID];
         }
       } else {
@@ -323,7 +337,10 @@ void TreeSurvival::findBestSplitValueLogRankUnordered(size_t nodeID, size_t varI
     // Count deaths in right child per timepoint
     for (auto& sampleID : sampleIDs[nodeID]) {
       size_t survival_timeID = (*response_timepointIDs)[sampleID];
-      double value = data->get(sampleID, varID);
+      double value;
+      if (!data->get(sampleID, varID, value)) {
+        continue;
+      }
       size_t factorID = floor(value) - 1;
 
       // If in right child, count
@@ -331,7 +348,11 @@ void TreeSurvival::findBestSplitValueLogRankUnordered(size_t nodeID, size_t varI
       if ((splitID & (1 << factorID))) {
         ++num_samples_right_child;
         ++delta_samples_at_risk_right_child[survival_timeID];
-        if (data->get(sampleID, status_varID) == 1) {
+        double survival_time;
+        if (!data->get(sampleID, status_varID, survival_time)) {
+          continue;
+        }
+        if (survival_time == 1) {
           ++num_deaths_right_child[survival_timeID];
         }
       }
@@ -415,9 +436,12 @@ void TreeSurvival::findBestSplitValueAUC(size_t nodeID, size_t varID, double& be
   // For all pairs
   for (size_t k = 0; k < num_node_samples; ++k) {
     size_t sample_k = sampleIDs[nodeID][k];
-    double time_k = data->get(sample_k, dependent_varID);
-    double status_k = data->get(sample_k, status_varID);
-    double value_k = data->get(sample_k, varID);
+    double time_k, status_k, value_k;
+    if (!data->get(sample_k, dependent_varID, time_k) ||
+        !data->get(sample_k, status_varID, status_k) ||
+        !data->get(sample_k, varID, value_k)) {
+      continue;
+    }
 
     // Count samples in left node
     for (size_t i = 0; i < num_splits; ++i) {
@@ -429,9 +453,12 @@ void TreeSurvival::findBestSplitValueAUC(size_t nodeID, size_t varID, double& be
 
     for (size_t l = k + 1; l < num_node_samples; ++l) {
       size_t sample_l = sampleIDs[nodeID][l];
-      double time_l = data->get(sample_l, dependent_varID);
-      double status_l = data->get(sample_l, status_varID);
-      double value_l = data->get(sample_l, varID);
+      double time_l, status_l, value_l;
+      if (!data->get(sample_l, dependent_varID, time_l) ||
+          !data->get(sample_l, status_varID, status_l) ||
+          !data->get(sample_l, varID, value_l)) {
+        continue;
+      }
 
       // Compute split
       computeAucSplit(time_k, time_l, status_k, status_l, value_k, value_l, num_splits, possible_split_values,

@@ -90,7 +90,11 @@ void ForestSurvival::initInternal(std::string status_variable_name) {
   // Create unique timepoints
   std::set<double> unique_timepoint_set;
   for (size_t i = 0; i < num_samples; ++i) {
-    unique_timepoint_set.insert(data->get(i, dependent_varID));
+    double value;
+    if (!data->get(i, dependent_varID, value)) {
+      continue;
+    }
+    unique_timepoint_set.insert(value);
   }
   unique_timepoints.reserve(unique_timepoint_set.size());
   for (auto& t : unique_timepoint_set) {
@@ -100,7 +104,10 @@ void ForestSurvival::initInternal(std::string status_variable_name) {
   // Create response_timepointIDs
   if (!prediction_mode) {
     for (size_t i = 0; i < num_samples; ++i) {
-      double value = data->get(i, dependent_varID);
+      double value;
+      if (!data->get(i, dependent_varID, value)) {
+        continue;
+      }
 
       // If timepoint is already in unique_timepoints, use ID. Else create a new one.
       uint timepointID = find(unique_timepoints.begin(), unique_timepoints.end(), value) - unique_timepoints.begin();

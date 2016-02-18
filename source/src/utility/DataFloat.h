@@ -38,14 +38,15 @@ public:
   DataFloat(double* data_double, std::vector<std::string> variable_names, size_t num_rows, size_t num_cols);
   virtual ~DataFloat();
 
-  double get(size_t row, size_t col) const {
+  bool get(size_t row, size_t col, double& result) const {
     if (col < num_cols_no_sparse) {
-      return data[col * num_rows + row];
+      result = data[col * num_rows + row];
     } else {
       // Get data out of sparse storage. -1 because of GenABEL coding.
       size_t idx = (col - num_cols_no_sparse) * num_rows_rounded + row;
-      return (((sparse_data[idx / 4] & mask[idx % 4]) >> offset[idx % 4]) - 1);
+      result = (((sparse_data[idx / 4] & mask[idx % 4]) >> offset[idx % 4]) - 1);
     }
+    return true;
   }
 
   void reserveMemory() {

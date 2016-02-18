@@ -145,7 +145,10 @@ void ForestRegression::computePredictionErrorInternal() {
       //oob_anytree_sampleIDs.push_back(i);
       predictions[i][0] /= (double) samples_oob_count[i];
       double predicted_value = predictions[i][0];
-      double real_value = data->get(i, dependent_varID);
+      double real_value;
+      if (!data->get(i, dependent_varID, real_value)) {
+        continue;
+      }
       overall_prediction_error += (predicted_value - real_value) * (predicted_value - real_value);
     }
   }

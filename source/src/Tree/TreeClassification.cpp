@@ -67,7 +67,10 @@ double TreeClassification::estimate(size_t nodeID) {
   // Count classes over samples in node and return class with maximum count
   std::unordered_map<double, size_t> class_count;
   for (size_t i = 0; i < sampleIDs[nodeID].size(); ++i) {
-    double value = data->get(sampleIDs[nodeID][i], dependent_varID);
+    double value;
+    if (!data->get(sampleIDs[nodeID][i], dependent_varID, value)) {
+      continue;
+    }
     ++class_count[value];
   }
 
@@ -90,7 +93,10 @@ bool TreeClassification::splitNodeInternal(size_t nodeID, std::vector<size_t>& p
   bool pure = true;
   double pure_value = 0;
   for (size_t i = 0; i < sampleIDs[nodeID].size(); ++i) {
-    double value = data->get(sampleIDs[nodeID][i], dependent_varID);
+    double value;
+    if (!data->get(sampleIDs[nodeID][i], dependent_varID, value)) {
+      break; // TODO: correct behaivour? setting pure here?
+    }
     if (i != 0 && value != pure_value) {
       pure = false;
       break;
@@ -123,7 +129,10 @@ double TreeClassification::computePredictionAccuracyInternal() {
   for (size_t i = 0; i < num_predictions; ++i) {
     size_t terminal_nodeID = prediction_terminal_nodeIDs[i];
     double predicted_value = split_values[terminal_nodeID];
-    double real_value = data->get(oob_sampleIDs[i], dependent_varID);
+    double real_value;
+    if (!data->get(oob_sampleIDs[i], dependent_varID, real_value)) {
+      continue;
+    }
     if (predicted_value != real_value) {
       ++num_missclassifications;
     }
@@ -222,7 +231,10 @@ void TreeClassification::findBestSplitValueSmallQ(size_t nodeID, size_t varID, s
 
   // Count samples in right child per class and possbile split
   for (auto& sampleID : sampleIDs[nodeID]) {
-    double value = data->get(sampleID, varID);
+    double value;
+    if (!data->get(sampleID, varID, value)) {
+      continue;
+    }
     uint sample_classID = (*response_classIDs)[sampleID];
 
     // Count samples until split_value reached
@@ -283,7 +295,10 @@ void TreeClassification::findBestSplitValueLargeQ(size_t nodeID, size_t varID, s
 
   // Count values
   for (auto& sampleID : sampleIDs[nodeID]) {
-    size_t index = data->getIndex(sampleID, varID);
+    size_t index;
+    if (!data->getIndex(sampleID, varID, index)) {
+      continue;
+    }
     size_t classID = (*response_classIDs)[sampleID];
 
     ++counter[index];
@@ -371,7 +386,10 @@ void TreeClassification::findBestSplitValueUnordered(size_t nodeID, size_t varID
     // Count classes in left and right child
     for (auto& sampleID : sampleIDs[nodeID]) {
       uint sample_classID = (*response_classIDs)[sampleID];
-      double value = data->get(sampleID, varID);
+      double value;
+      if (!data->get(sampleID, varID, value)) {
+        break;
+      }
       size_t factorID = floor(value) - 1;
 
       // If in right child, count

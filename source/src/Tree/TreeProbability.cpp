@@ -100,7 +100,10 @@ bool TreeProbability::splitNodeInternal(size_t nodeID, std::vector<size_t>& poss
   bool pure = true;
   double pure_value = 0;
   for (size_t i = 0; i < sampleIDs[nodeID].size(); ++i) {
-    double value = data->get(sampleIDs[nodeID][i], dependent_varID);
+    double value;
+    if (!data->get(sampleIDs[nodeID][i], dependent_varID, value)) {
+      continue;
+    }
     if (i != 0 && value != pure_value) {
       pure = false;
       break;
@@ -150,7 +153,11 @@ bool TreeProbability::findBestSplit(size_t nodeID, std::vector<size_t>& possible
   // Compute sum of responses in node
   double sum_node = 0;
   for (auto& sampleID : sampleIDs[nodeID]) {
-    sum_node += data->get(sampleID, dependent_varID);
+    double value;
+    if (!data->get(sampleID, dependent_varID, value)) {
+      continue;
+    }
+    sum_node += value;
   }
 
   // For all possible split variables
@@ -223,8 +230,10 @@ void TreeProbability::findBestSplitValueSmallQ(size_t nodeID, size_t varID, doub
 
   // Sum in right child and possbile split
   for (auto& sampleID : sampleIDs[nodeID]) {
-    double value = data->get(sampleID, varID);
-    double response = data->get(sampleID, dependent_varID);
+    double value, response;
+    if (!data->get(sampleID, varID, value) || !data->get(sampleID, dependent_varID, response)) {
+      continue;
+    }
 
     // Count samples until split_value reached
     for (size_t i = 0; i < num_splits; ++i) {
@@ -273,9 +282,15 @@ void TreeProbability::findBestSplitValueLargeQ(size_t nodeID, size_t varID, doub
   std::fill(sums, sums + num_unique, 0);
 
   for (auto& sampleID : sampleIDs[nodeID]) {
-    size_t index = data->getIndex(sampleID, varID);
-
-    sums[index] += data->get(sampleID, dependent_varID);
+    size_t index;
+    if (!data->getIndex(sampleID, varID, index)) {
+      continue;
+    }
+    double value;
+    if (!data->get(sampleID, dependent_varID, value)) {
+      continue;
+    }
+    sums[index] += value;
     ++counter[index];
   }
 
@@ -347,8 +362,14 @@ void TreeProbability::findBestSplitValueUnordered(size_t nodeID, size_t varID, d
 
     // Sum in right child
     for (auto& sampleID : sampleIDs[nodeID]) {
-      double response = data->get(sampleID, dependent_varID);
-      double value = data->get(sampleID, varID);
+      double response;
+      if (!data->get(sampleID, dependent_varID, response)) {
+        continue;
+      }
+      double value;
+      if (!data->get(sampleID, varID, value)) {
+        continue;
+      }
       size_t factorID = floor(value) - 1;
 
       // If in right child, count
@@ -377,7 +398,11 @@ void TreeProbability::addImpurityImportance(size_t nodeID, size_t varID, double 
 
   double sum_node = 0;
   for (auto& sampleID : sampleIDs[nodeID]) {
-    sum_node += data->get(sampleID, dependent_varID);
+    double value;
+    if (!data->get(sampleID, dependent_varID, value)) {
+      continue;
+    }
+    sum_node += value;
   }
   double best_decrease = decrease - sum_node * sum_node / (double) sampleIDs[nodeID].size();
 

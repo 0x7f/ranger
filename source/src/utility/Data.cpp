@@ -174,7 +174,11 @@ void Data::getAllValues(std::vector<double>& all_values, std::vector<size_t>& sa
 
     all_values.reserve(sampleIDs.size());
     for (size_t i = 0; i < sampleIDs.size(); ++i) {
-      all_values.push_back(get(sampleIDs[i], varID));
+      double value;
+      if (!get(sampleIDs[i], varID, value)) {
+        continue;
+      }
+      all_values.push_back(value);
     }
     std::sort(all_values.begin(), all_values.end());
     all_values.erase(unique(all_values.begin(), all_values.end()), all_values.end());
@@ -196,14 +200,22 @@ void Data::sort() {
     // Get all unique values
     std::vector<double> unique_values(num_rows);
     for (size_t row = 0; row < num_rows; ++row) {
-      unique_values[row] = get(row, col);
+      double value;
+      if (!get(row, col, value)) {
+        continue;
+      }
+      unique_values[row] = value;
     }
     std::sort(unique_values.begin(), unique_values.end());
     unique_values.erase(unique(unique_values.begin(), unique_values.end()), unique_values.end());
 
     // Get index of unique value
     for (size_t row = 0; row < num_rows; ++row) {
-      size_t idx = std::lower_bound(unique_values.begin(), unique_values.end(), get(row, col)) - unique_values.begin();
+      double value;
+      if (!get(row, col, value)) {
+        continue;
+      }
+      size_t idx = std::lower_bound(unique_values.begin(), unique_values.end(), value) - unique_values.begin();
       index_data[col * num_rows + row] = idx;
     }
 

@@ -79,7 +79,10 @@ void ForestProbability::initInternal(std::string status_variable_name) {
 
     // Find all unique response values and sort them
     for (size_t i = 0; i < num_samples; ++i) {
-      double value = data->get(i, dependent_varID);
+      double value;
+      if (!data->get(i, dependent_varID, value)) {
+        continue;
+      }
       uint classID = find(class_values.begin(), class_values.end(), value) - class_values.begin();
       if (classID == class_values.size()) {
         class_values.push_back(value);
@@ -89,7 +92,10 @@ void ForestProbability::initInternal(std::string status_variable_name) {
 
     // Assign class ID to each observation
     for (size_t i = 0; i < num_samples; ++i) {
-      double value = data->get(i, dependent_varID);
+      double value;
+      if (!data->get(i, dependent_varID, value)) {
+        continue;
+      }
       uint classID = find(class_values.begin(), class_values.end(), value) - class_values.begin();
       response_classIDs.push_back(classID);
     }

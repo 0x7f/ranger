@@ -236,16 +236,22 @@ double computeConcordanceIndex(Data* data, std::vector<double>& sum_chf, size_t 
     if (!sample_IDs.empty()) {
       sample_i = sample_IDs[i];
     }
-    double time_i = data->get(sample_i, dependent_varID);
-    double status_i = data->get(sample_i, status_varID);
+    double time_i, status_i;
+    if (!data->get(sample_i, dependent_varID, time_i) ||
+        !data->get(sample_i, status_varID, status_i)) {
+      continue;
+    }
 
     for (size_t j = i + 1; j < sum_chf.size(); ++j) {
       size_t sample_j = j;
       if (!sample_IDs.empty()) {
         sample_j = sample_IDs[j];
       }
-      double time_j = data->get(sample_j, dependent_varID);
-      double status_j = data->get(sample_j, status_varID);
+      double time_j, status_j;
+      if (!data->get(sample_j, dependent_varID, time_j) ||
+          !data->get(sample_j, status_varID, status_j)) {
+        continue;
+      }
 
       if (time_i < time_j && status_i == 0) {
         continue;
