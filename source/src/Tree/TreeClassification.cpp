@@ -94,7 +94,7 @@ bool TreeClassification::splitNodeInternal(size_t nodeID, std::vector<size_t>& p
   double pure_value = 0;
   for (size_t i = 0; i < sampleIDs[nodeID].size(); ++i) {
     double value;
-    if (!data->get(sampleIDs[nodeID][i], dependent_varID, value)) {
+    if (!data->get(sampleIDs[nodeID][i], dependent_varID, value)) {
       break; // TODO: correct behaivour? setting pure here?
     }
     if (i != 0 && value != pure_value) {
