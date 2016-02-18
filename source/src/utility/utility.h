@@ -220,7 +220,7 @@ void drawWithoutReplacementWeighted(std::vector<size_t>& result, std::mt19937_64
  * @return Most frequent class index. Out of range index if all 0.
  */
 template<typename T>
-size_t mostFrequentClass(std::vector<T>& class_count, std::mt19937_64 random_number_generator) {
+size_t mostFrequentClass(std::vector<T>& class_count, std::mt19937_64& random_number_generator) {
   std::vector<size_t> major_classes;
 
   // Find maximum count
@@ -253,7 +253,7 @@ size_t mostFrequentClass(std::vector<T>& class_count, std::mt19937_64 random_num
  * @param random_number_generator Random number generator
  * @return Most frequent value
  */
-double mostFrequentValue(std::unordered_map<double, size_t>& class_count, std::mt19937_64 random_number_generator);
+double mostFrequentValue(std::unordered_map<double, size_t>& class_count, std::mt19937_64& random_number_generator);
 
 /**
  * Compute concordance index for given data and summed cumulative hazard function/estimate
@@ -306,7 +306,7 @@ void splitString(std::vector<std::string>& result, std::string input, char split
  * @param random_number_generator Random number generator
  */
 void shuffleAndSplit(std::vector<size_t>& first_part, std::vector<size_t>& second_part, size_t n_all, size_t n_first,
-    std::mt19937_64 random_number_generator);
+    std::mt19937_64& random_number_generator);
 
 /**
  * Check if not too many factor levels and all values in unordered categorical variables are positive integers.

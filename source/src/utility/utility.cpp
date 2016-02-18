@@ -201,7 +201,7 @@ void drawWithoutReplacementWeighted(std::vector<size_t>& result, std::mt19937_64
   }
 }
 
-double mostFrequentValue(std::unordered_map<double, size_t>& class_count, std::mt19937_64 random_number_generator) {
+double mostFrequentValue(std::unordered_map<double, size_t>& class_count, std::mt19937_64& random_number_generator) {
   std::vector<double> major_classes;
 
   // Find maximum count
@@ -342,7 +342,7 @@ void splitString(std::vector<std::string>& result, std::string input, char split
 }
 
 void shuffleAndSplit(std::vector<size_t>& first_part, std::vector<size_t>& second_part, size_t n_all, size_t n_first,
-    std::mt19937_64 random_number_generator) {
+    std::mt19937_64& random_number_generator) {
 
   // Reserve space
   first_part.resize(n_all);
